@@ -14,7 +14,7 @@ mvn clean package spring-boot:repackage
 ## Deploy
 Builded .jar file could be run using
 ```bash
-java -jar target/js-wrapper-1.2.0.jar
+java -jar target/js-wrapper-1.2.1.jar
 ```
 
 ## Run with Docker
