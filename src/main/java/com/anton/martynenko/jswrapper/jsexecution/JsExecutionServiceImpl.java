@@ -1,0 +1,175 @@
+package com.anton.martynenko.jswrapper.jsexecution;
+
+import com.anton.martynenko.jswrapper.graalvm.GraalVmHelper;
+import com.anton.martynenko.jswrapper.graalvm.Language;
+import com.anton.martynenko.jswrapper.jsexecution.enums.SortBy;
+import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
+import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionNotFoundProblem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+
+/**
+ * Service layer component for JS code executions business logic.
+ *
+ * @author Martynenko Anton
+ * @since 1.0
+ */
+@Primary
+@Service
+public final class JsExecutionServiceImpl implements JsExecutionService{
+
+  /**
+   * Local {@link org.slf4j.Logger} bean.
+   */
+
+  private final Logger logger;
+
+  /**
+   * {@link JsExecutionRepository} repository bean.
+   * */
+
+  private final JsExecutionRepository jsExecutionRepository;
+
+  /**
+   * Configured {@link ThreadPoolTaskExecutor} bean.
+   */
+
+  private final ThreadPoolTaskExecutor taskExecutor;
+
+
+  /**
+   * {@link GraalVmHelper} bean.
+   */
+
+  private final GraalVmHelper graalVmHelper;
+
+  /**
+   * {@link JsExecutionFactory} bean.
+   */
+
+  private final JsExecutionFactory jsExecutionFactory;
+
+  /**
+   * Autowiring constructor.
+   * @param logger {@link Logger} bean
+   * @param mapJsExecutionRepository {@link MapJsExecutionRepository} bean
+   * @param taskExecutor {@link ThreadPoolTaskExecutor} bean
+   * @param graalVmHelper {@link GraalVmHelper} bean
+   * @param jsExecutionFactory {@link JsExecutionFactory} bean
+   */
+  @Autowired
+  public JsExecutionServiceImpl(@NotNull final Logger logger,
+                                @NotNull final JsExecutionRepository mapJsExecutionRepository,
+                                @NotNull final ThreadPoolTaskExecutor taskExecutor,
+                                @NotNull final GraalVmHelper graalVmHelper,
+                                @NotNull final JsExecutionFactory jsExecutionFactory) {
+    this.logger = logger;
+    this.jsExecutionRepository = mapJsExecutionRepository;
+    this.taskExecutor = taskExecutor;
+    this.graalVmHelper = graalVmHelper;
+    this.jsExecutionFactory = jsExecutionFactory;
+  }
+
+  /**
+   * Runs new JS code execution.
+   *
+   * @param scriptBody code fragment
+   * @return {@link  JsExecution} object
+   * @since 1.0
+   */
+  @NotNull
+  @Override
+  public JsExecution createJsExecution(@NotNull final String scriptBody) {
+
+    graalVmHelper.validate(scriptBody, Language.JS);
+
+    JsExecution jsExecution = jsExecutionFactory.createNew(scriptBody);
+
+    jsExecution.submitExecution(taskExecutor);
+
+    jsExecutionRepository.save(jsExecution);
+
+    return jsExecution;
+  }
+
+  /**
+   * Returns all executions.
+   *
+   * @param status optional filtration criteria
+   * @param sortBy optional sorting criteria
+   * @return collection of {@link  JsExecution} objects or empty collection
+   * @since 1.0
+   */
+
+  @NotNull
+  @Override
+  public  Collection<JsExecution> getJsExecutions(@Nullable final Status status, @Nullable final SortBy sortBy) {
+
+    return jsExecutionRepository.findAll(status, sortBy);
+  }
+
+  /**
+   * Returns execution by id.
+   *
+   * @param executionId {@link  JsExecution} id
+   * @return  {@link  JsExecution} object or null
+   * @since 1.0
+   */
+
+  @NotNull
+  @Override
+  public JsExecution getJsExecution(@NotNull final Integer executionId) {
+    JsExecution jsExecution = jsExecutionRepository.getOne(executionId);
+    if (jsExecution == null) {
+      throw new JsExecutionNotFoundProblem(executionId);
+    }
+
+    return jsExecution;
+  }
+
+
+  /**
+   * Delete execution.
+   *
+   * @param jsExecution {@link  JsExecution} id
+   *
+   * @since 1.0
+   */
+
+  @Override
+  public void deleteJsExecution(@NotNull final JsExecution jsExecution) {
+
+    if (jsExecution.getStatus().equals(Status.RUNNING)) {
+      logger.warn("Deleting of running execution id {}. It will be previously stopped", jsExecution.getId());
+
+      jsExecution.stop();
+    }
+
+    jsExecutionRepository.delete(jsExecution);
+  }
+
+  /**
+   * Stop running execution.
+   *
+   * @param jsExecution {@link  JsExecution} id
+   * @return stopped {@link  JsExecution} or null
+   *
+   * @since 1.0
+   */
+
+  @NotNull
+  @Override
+  public JsExecution stopJsExecution(@NotNull final JsExecution jsExecution) {
+
+    jsExecution.stop();
+
+    return jsExecution;
+  }
+}
