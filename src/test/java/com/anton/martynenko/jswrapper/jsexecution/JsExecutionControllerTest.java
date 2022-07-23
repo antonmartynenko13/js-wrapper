@@ -127,7 +127,7 @@ class JsExecutionControllerTest {
                 .andReturn().getResponse().getContentAsString();
 
         String content = this.mockMvc.perform(get("/executions")
-                .param("status", Status.SUCCESS.name()))
+                .param("status", Status.SUCCESSFUL.name()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -149,7 +149,7 @@ class JsExecutionControllerTest {
 
         content = this.mockMvc.perform(get("/executions")
                 .param("sortBy", SortBy.ID.name())
-                .param("status", Status.SUCCESS.name()))
+                .param("status", Status.SUCCESSFUL.name()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))

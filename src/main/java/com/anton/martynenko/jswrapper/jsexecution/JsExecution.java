@@ -140,7 +140,7 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
       Value script = context.parse(Source.create("js", scriptBody));
       Value executionResult = script.execute();
       executionTime = ZonedDateTime.now();
-      this.status = Status.SUCCESS;
+      this.status = Status.SUCCESSFUL;
       this.resultValue = executionResult.toString();
 
       LOGGER.info("Execution of script id {} is completed successfully", this.id);
@@ -149,7 +149,7 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
 
       LOGGER.error("Exception during call method. Exception type is {} Context will be closed. Exception will be saved", e.getClass().getName());
 
-      this.status = Status.UNSUCCESS;
+      this.status = Status.UNSUCCESSFUL;
       this.exception = e;
     }
     return this;
@@ -292,7 +292,7 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
         this.result.cancel(true);
 
       }
-      this.status = Status.CANCELLED; // this one will be changed to UNSUCCESS if it already run
+      this.status = Status.CANCELLED; // this one will be changed to UNSUCCESSFUL if it already run
 
       LOGGER.debug("JsExecution id {} stopping initiated successfully", this.id);
     } else {

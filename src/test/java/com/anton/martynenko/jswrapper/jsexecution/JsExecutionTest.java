@@ -1,22 +1,16 @@
 package com.anton.martynenko.jswrapper.jsexecution;
 
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.test.util.ReflectionTestUtils;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -66,7 +60,7 @@ class JsExecutionTest {
 
         assertThat(jsExecution.getScriptBody()).isEqualTo(FUNCTION_CODE_EXAMPLE);
         assertThat(jsExecution.getResultValue()).isEqualTo("4");
-        assertThat(jsExecution.getStatus()).isEqualTo(Status.SUCCESS);
+        assertThat(jsExecution.getStatus()).isEqualTo(Status.SUCCESSFUL);
         assertThat(jsExecution.collectExecutionLog()).isEqualTo(JS_CONSOLE_OUTPUT + "\n");
         assertThat(jsExecution.collectErrorLog()).startsWith("[To redirect Truffle log output to a file use one of the following options:");
         assertThat(jsExecution.collectExceptionInfo()).isEmpty();
@@ -78,7 +72,7 @@ class JsExecutionTest {
 
         assertThat(jsExecution.getScriptBody()).isEqualTo(VALID_CODE_EXAMPLE2);
         assertThat(jsExecution.getResultValue()).isEqualTo("undefined");
-        assertThat(jsExecution.getStatus()).isEqualTo(Status.SUCCESS);
+        assertThat(jsExecution.getStatus()).isEqualTo(Status.SUCCESSFUL);
         assertThat(jsExecution.collectExecutionLog()).isEmpty();
         assertThat(jsExecution.collectErrorLog()).startsWith("[To redirect Truffle log output to a file use one of the following options:");
         assertThat(jsExecution.collectExceptionInfo()).isEmpty();
@@ -98,7 +92,7 @@ class JsExecutionTest {
 
         TimeUnit.MILLISECONDS.sleep(1000);
 
-        Assertions.assertTrue(jsExecution.getStatus().equals(Status.CANCELLED) || jsExecution.getStatus().equals(Status.UNSUCCESS));
+        Assertions.assertTrue(jsExecution.getStatus().equals(Status.CANCELLED) || jsExecution.getStatus().equals(Status.UNSUCCESSFUL));
 
         assertThat(jsExecution.collectExceptionInfo()).startsWith("Thread was interrupted.");
 
@@ -141,7 +135,7 @@ class JsExecutionTest {
         latch.await();
 
         jsExecutions.forEach(jsExecution -> {
-            assertThat(jsExecution.getStatus().equals(Status.SUCCESS));
+            assertThat(jsExecution.getStatus().equals(Status.SUCCESSFUL));
         });
     }
 

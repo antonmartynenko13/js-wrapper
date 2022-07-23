@@ -12,7 +12,7 @@
 
 	<groupId>com.anton.martynenko</groupId>
 	<artifactId>js-wrapper</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2</version>
 
 	<name>JsWrapper</name>
 	<packaging>jar</packaging>

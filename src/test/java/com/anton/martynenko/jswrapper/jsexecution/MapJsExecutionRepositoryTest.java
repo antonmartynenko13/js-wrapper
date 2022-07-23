@@ -10,8 +10,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -90,7 +88,7 @@ class MapJsExecutionRepositoryTest {
         assertThat(jsExecutions).isEmpty();
 
         jsExecution1.submitExecution(threadPoolTaskExecutor).get();
-        jsExecutions = jsExecutionMapRepository.findAll(Status.SUCCESS, SortBy.ID);
+        jsExecutions = jsExecutionMapRepository.findAll(Status.SUCCESSFUL, SortBy.ID);
         assertThat(jsExecutions).hasSize(1);
         assertThat(jsExecutions.iterator().next()).isEqualTo(jsExecution1);
 

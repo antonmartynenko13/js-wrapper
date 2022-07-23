@@ -4,7 +4,6 @@ RUN addgroup -S spring && adduser -S spring -G spring
 
 USER spring:spring
 
-#ARG JAR_FILE=target/js-wrapper-1.1.0.jar
 ARG JAR_FILE=target/js-wrapper-*.jar
 
 COPY ${JAR_FILE} app.jar

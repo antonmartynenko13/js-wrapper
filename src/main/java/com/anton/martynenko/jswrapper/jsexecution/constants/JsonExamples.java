@@ -15,7 +15,7 @@ public final class JsonExamples {
   public static final String JS_EXECUTION_EXAMPLE = "{\n" +
       "    \"id\": 1,\n" +
       "    \"resultValue\": \"undefined\",\n" +
-      "    \"status\": \"SUCCESS\",\n" +
+      "    \"status\": \"SUCCESSFUL\",\n" +
       "    \"scheduledTime\": \"2022-06-30T21:34:09.399+03:00[Europe/Minsk]\",\n" +
       "    \"executionTime\": \"2022-06-30T21:34:09.455+03:00[Europe/Minsk]\",\n" +
       "    \"links\": [\n" +

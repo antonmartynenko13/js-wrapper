@@ -34,12 +34,12 @@ public enum  Status {
   /**
    * {@link com.anton.martynenko.jswrapper.jsexecution.JsExecution} finished successfully.
    */
-  SUCCESS,
+  SUCCESSFUL,
 
   /**
    * {@link com.anton.martynenko.jswrapper.jsexecution.JsExecution} finished unsuccessfully (crushed or stopped manually).
    */
-  UNSUCCESS;
+  UNSUCCESSFUL;
 
   @Override
   public String toString() {
