@@ -27,11 +27,11 @@ docker run -it -p 8080:8080 -t jsw
 ## Usage
 You can run any valid js code with traditional or arrow functions. Return value could be found in <code>resultValue</code> property of execution json object. Any execution details/logs are provided.
 
-Read more in our [REST-API reference](https://antonmartynenko13.github.io/JsWrapper/restapidocs/)
+Read more in our [REST-API reference](https://antonmartynenko13.github.io/js-wrapper/restapidocs/)
 
-You can also see [javadoc](https://antonmartynenko13.github.io/JsWrapper/apidocs)
+You can also see [javadoc](https://antonmartynenko13.github.io/js-wrapper/apidocs)
 
-And other project [details](https://antonmartynenko13.github.io/JsWrapper/)
+And other project [details](https://antonmartynenko13.github.io/js-wrapper/)
 
 Enjoy!
 
