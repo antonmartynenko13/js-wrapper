@@ -40,9 +40,10 @@ public class GraalVmHelper {
    *
    * @param scriptBody code fragment
    * @param language {@link Language} view of code language
+   * @throws JsExecutionCanNotBeExecutedProblem when JsExecution.scriptBody can't be executed
    */
 
-  public void validate(final String scriptBody, final Language language) {
+  public void validate(final String scriptBody, final Language language) throws JsExecutionCanNotBeExecutedProblem{
 
     logger.debug("Validation of JS code fragment:\n{}", scriptBody);
 

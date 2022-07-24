@@ -38,9 +38,6 @@ class JsExecutionServiceImplTest {
     private GraalVmHelper graalVmHelper;
 
     @Mock
-    private JsExecutionFactory jsExecutionFactory;
-
-    @Mock
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Spy
@@ -55,14 +52,14 @@ class JsExecutionServiceImplTest {
 
 
     @Test
-    void createJsExecution() {
+    void saveAndExecute() {
         JsExecution jsExecutionMock = Mockito.mock(JsExecution.class);
 
-        when(jsExecutionFactory.createNew(VALID_CODE_EXAMPLE)).thenReturn(jsExecutionMock);
+        when(jsExecutionMock.getScriptBody()).thenReturn(VALID_CODE_EXAMPLE);
+
         when(jsExecutionRepository.save(jsExecutionMock)).thenReturn(jsExecutionMock);
 
-
-        JsExecution jsExecution = jsExecutionServiceImpl.createJsExecution(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution = jsExecutionServiceImpl.saveAndExecute(jsExecutionMock);
 
         assertThat(jsExecution).isEqualTo(jsExecutionMock);
     }
@@ -71,8 +68,8 @@ class JsExecutionServiceImplTest {
     void getJsExecutions() {
 
         when(jsExecutionRepository.findAll(null, null)).thenReturn(new ArrayList<>());
-        Collection<JsExecution> jsExecutionCollectionMock = Arrays.asList(jsExecutionFactory.createNew(VALID_CODE_EXAMPLE),
-                                                                                jsExecutionFactory.createNew(VALID_CODE_EXAMPLE));
+        Collection<JsExecution> jsExecutionCollectionMock = Arrays.asList(new JsExecution(VALID_CODE_EXAMPLE),
+                                                                            new JsExecution(VALID_CODE_EXAMPLE));
         when(jsExecutionRepository.findAll(Status.CREATED, SortBy.ID)).thenReturn(jsExecutionCollectionMock);
 
         assertThat(jsExecutionServiceImpl.getJsExecutions(null, null)).isEmpty();
@@ -107,6 +104,10 @@ class JsExecutionServiceImplTest {
 
         jsExecutionServiceImpl.deleteJsExecution(jsExecutionMock);
 
+        when(jsExecutionMock.getStatus()).thenReturn(Status.CANCELLED);
+
+        jsExecutionServiceImpl.deleteJsExecution(jsExecutionMock);
+
         //if nothing bad happens
         assertTrue(true);
     }
@@ -115,6 +116,6 @@ class JsExecutionServiceImplTest {
     void stopJsExecution() {
         JsExecution jsExecution = Mockito.mock(JsExecution.class);
 
-        assertThat(jsExecutionServiceImpl.stopJsExecution(jsExecution)).isEqualTo(jsExecution);
+        assertThat(jsExecutionServiceImpl.cancelJsExecution(jsExecution)).isEqualTo(jsExecution);
     }
 }

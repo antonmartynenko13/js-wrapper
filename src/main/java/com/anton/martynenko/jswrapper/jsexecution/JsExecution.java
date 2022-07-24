@@ -1,16 +1,14 @@
 package com.anton.martynenko.jswrapper.jsexecution;
 
-import com.anton.martynenko.jswrapper.jsexecution.enums.Property;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.graalvm.polyglot.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.RepresentationModel;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -18,13 +16,10 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * Object representing execution of JS code fragment with details.
@@ -36,8 +31,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  */
 
 @ThreadSafe
+@JsonDeserialize(using = JsExecutionDeserializer.class)
 @JsonIgnoreProperties(value = { "taskExecutor", "scriptBody", "out", "err", "context", "exception"}, ignoreUnknown = true)
-public class JsExecution extends RepresentationModel<JsExecution> implements Callable<JsExecution> {
+public class JsExecution implements Callable<JsExecution> {
 
   /**
    * Local {@link org.slf4j.Logger} bean.
@@ -108,21 +104,6 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
     this.scriptBody = scriptBody;
   }
 
-  /**
-   * Initializing of json representation with hateoas endpoints.
-   * Must be invoked in the end of construction
-   * @since 1.1
-   */
-  private void initializeRepresentationModel() {
-    for (Property property: Property.values()) {
-      Link link = linkTo(methodOn(JsExecutionController.class)
-          .getExecutionDetails(this.id, property)).withRel(property.name());
-      this.add(link);
-    }
-    LOGGER.debug("RepresentationModel initialized with HATEOAS properties : {}", Arrays.toString(Property.values()));
-  }
-
-
   @Override
   public @NotNull JsExecution call() {
 
@@ -146,11 +127,13 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
       LOGGER.info("Execution of script id {} is completed successfully", this.id);
 
     } catch (Exception e) {
+      //if execution wasn't cancelled
+      if (!this.status.equals(Status.CANCELLED)){
+        LOGGER.error("Exception during call method. Exception type is {} Context will be closed. Exception will be saved", e.getClass().getName());
+        this.status = Status.UNSUCCESSFUL;
+        this.exception = e;
+      }
 
-      LOGGER.error("Exception during call method. Exception type is {} Context will be closed. Exception will be saved", e.getClass().getName());
-
-      this.status = Status.UNSUCCESSFUL;
-      this.exception = e;
     }
     return this;
   }
@@ -165,14 +148,6 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
     return id;
   }
 
-  /**
-   * Id private setter. Could be used only in repository or tests(with Reflection API)
-   * @param id positive, not null id to set
-   */
-  private synchronized void setId(@NotNull final Integer id) {
-    this.id = id;
-    initializeRepresentationModel();
-  }
 
   /**
    * ScriptBody getter.
@@ -182,6 +157,8 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
   String getScriptBody() {
     return scriptBody;
   }
+
+
 
   /**
    * ResultValue getter.
@@ -255,6 +232,12 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
     return ExceptionUtils.getStackTrace(exception);
   }
 
+  boolean isCancelable(){
+    return !this.status.equals(Status.SUCCESSFUL)
+        && !this.status.equals(Status.UNSUCCESSFUL)
+        && !this.status.equals(Status.CANCELLED);
+  }
+
   /**
    * Execute script with task executor.
    * @param taskExecutor ThreadPoolTaskExecutor object
@@ -285,18 +268,18 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
    * @since 1.1
    */
 
-  synchronized void stop() {
-
-    if (this.status.equals(Status.SUBMITTED) || this.status.equals(Status.RUNNING)) {
+  synchronized void cancel() {
+    if (isCancelable()) {
       if (this.result != null && !this.result.isCancelled()) {
         this.result.cancel(true);
 
       }
-      this.status = Status.CANCELLED; // this one will be changed to UNSUCCESSFUL if it already run
+      this.status = Status.CANCELLED;
 
       LOGGER.debug("JsExecution id {} stopping initiated successfully", this.id);
     } else {
-      LOGGER.debug("JsExecution id {} and status {} can't be stopped", this.id, this.status);
+      LOGGER.debug("JsExecution id {} and status {} can't be canceled", this.id, this.status);
+
     }
   }
 
@@ -327,5 +310,17 @@ public class JsExecution extends RepresentationModel<JsExecution> implements Cal
   @Override
   public int hashCode() {
     return Objects.hash(super.hashCode(), id, scriptBody, resultValue, status, scheduledTime, executionTime, out, err, exception);
+  }
+
+  @Override
+  public String toString() {
+    return "JsExecution{" +
+        "id=" + id +
+        ", scriptBody='" + scriptBody + '\'' +
+        ", resultValue='" + resultValue + '\'' +
+        ", status=" + status +
+        ", scheduledTime=" + scheduledTime +
+        ", executionTime=" + executionTime +
+        '}';
   }
 }

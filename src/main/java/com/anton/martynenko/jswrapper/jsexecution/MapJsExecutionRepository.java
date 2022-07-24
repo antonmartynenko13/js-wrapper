@@ -3,6 +3,7 @@ package com.anton.martynenko.jswrapper.jsexecution;
 import com.anton.martynenko.jswrapper.jsexecution.enums.SortBy;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
 import com.anton.martynenko.jswrapper.jsexecution.problem.EntityCanNotBeSavedProblem;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -121,18 +122,18 @@ public final class MapJsExecutionRepository implements JsExecutionRepository {
   @Override
   public JsExecution save(@NotNull final JsExecution jsExecution) {
     if (jsExecution.getId() == null) {
-      Class<?> clazz = jsExecution.getClass();
       try {
-        Method setIdMethod = clazz.getDeclaredMethod("setId", Integer.class);
-        setIdMethod.setAccessible(true);
-        setIdMethod.invoke(jsExecution, ID_GENERATOR.incrementAndGet());
+        //reflective id update
+        FieldUtils.writeField(jsExecution, "id", ID_GENERATOR.incrementAndGet(), true);
+
       } catch (Exception e){
+
         throw new EntityCanNotBeSavedProblem(e);
+
       }
-    // Operations.class.getMethod("publicSum", int.class, double.class);
-  //    jsExecution.setId(ID_GENERATOR.incrementAndGet());
     }
     storage.put(jsExecution.getId(), jsExecution);
+
     return jsExecution;
   }
 

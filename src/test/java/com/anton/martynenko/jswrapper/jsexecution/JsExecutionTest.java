@@ -31,28 +31,25 @@ class JsExecutionTest {
             "console.timeEnd('mySlowFunction')";
 
     @Autowired
-    private JsExecutionFactory jsExecutionFactory;
-
-    @Autowired
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Test
     void shouldCreateWithFilledProperties()  {
-        JsExecution jsExecution = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution = new JsExecution(VALID_CODE_EXAMPLE);
         assertThat(jsExecution.getStatus()).isEqualTo(Status.CREATED);
         assertThat(jsExecution.getScheduledTime()).isNotNull();
         assertThat(jsExecution.getExecutionTime()).isNull();
         assertThat(jsExecution.getResultValue()).isNull();
         assertThat(jsExecution.getScriptBody()).isEqualTo(VALID_CODE_EXAMPLE);
 
-        JsExecution jsExecution2 = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution2 = new JsExecution(VALID_CODE_EXAMPLE);
         assertThat(jsExecution).isNotEqualTo(jsExecution2);
     }
 
     @Test
     void shouldExecuteNormallyAndFillProperties() throws ExecutionException, InterruptedException {
 
-        JsExecution jsExecution = jsExecutionFactory.createNew(FUNCTION_CODE_EXAMPLE);
+        JsExecution jsExecution = new JsExecution(FUNCTION_CODE_EXAMPLE);
 
         Future <JsExecution> result = jsExecution.submitExecution(threadPoolTaskExecutor);
 
@@ -65,7 +62,7 @@ class JsExecutionTest {
         assertThat(jsExecution.collectErrorLog()).startsWith("[To redirect Truffle log output to a file use one of the following options:");
         assertThat(jsExecution.collectExceptionInfo()).isEmpty();
 
-        jsExecution = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE2);
+        jsExecution = new JsExecution(VALID_CODE_EXAMPLE2);
         result = jsExecution.submitExecution(threadPoolTaskExecutor);
 
         jsExecution = result.get();
@@ -80,7 +77,7 @@ class JsExecutionTest {
 
     @Test
     void shouldSuccessfullyStopAndFillProperties() throws InterruptedException {
-        JsExecution jsExecution = jsExecutionFactory.createNew(SLOW_JS_CODE);
+        JsExecution jsExecution = new JsExecution(SLOW_JS_CODE);
 
         Future <JsExecution> result = jsExecution.submitExecution(threadPoolTaskExecutor);
 
@@ -88,29 +85,22 @@ class JsExecutionTest {
 
         assertThat(jsExecution.getStatus()).isEqualTo(Status.RUNNING);
 
-        jsExecution.stop();
+        jsExecution.cancel();
 
         TimeUnit.MILLISECONDS.sleep(1000);
 
-        Assertions.assertTrue(jsExecution.getStatus().equals(Status.CANCELLED) || jsExecution.getStatus().equals(Status.UNSUCCESSFUL));
-
-        assertThat(jsExecution.collectExceptionInfo()).startsWith("Thread was interrupted.");
+        Assertions.assertEquals(jsExecution.getStatus(), Status.CANCELLED);
 
         assertThat(result.isCancelled()).isTrue();
 
-        jsExecution = jsExecutionFactory.createNew(SLOW_JS_CODE);
+        assertThat(jsExecution.collectExceptionInfo()).isEmpty();
 
-        jsExecution.submitExecution(threadPoolTaskExecutor);
-
-        jsExecution.stop();
-
-        assertThat(jsExecution.getStatus()).isEqualTo(Status.CANCELLED);
     }
 
     @Test
     void equalsAndHashcodeShouldWorkCorrectly(){
-        JsExecution jsExecution1 = jsExecutionFactory.createNew(FUNCTION_CODE_EXAMPLE);
-        JsExecution jsExecution2 = jsExecutionFactory.createNew(FUNCTION_CODE_EXAMPLE);
+        JsExecution jsExecution1 = new JsExecution(FUNCTION_CODE_EXAMPLE);
+        JsExecution jsExecution2 = new JsExecution(FUNCTION_CODE_EXAMPLE);
         assertThat(jsExecution1.hashCode()).isNotEqualTo(jsExecution2.hashCode());
         assertThat(jsExecution1).isNotEqualTo(jsExecution2);
     }

@@ -7,36 +7,50 @@ package com.anton.martynenko.jswrapper.jsexecution.constants;
  * @since 1.1
  */
 
-public final class JsonExamples {
+public abstract class JsonExamples {
   /**
    * Json example of {@link com.anton.martynenko.jswrapper.jsexecution.JsExecution} object .
    */
 
   public static final String JS_EXECUTION_EXAMPLE = "{\n" +
-      "    \"id\": 1,\n" +
-      "    \"resultValue\": \"undefined\",\n" +
-      "    \"status\": \"SUCCESSFUL\",\n" +
-      "    \"scheduledTime\": \"2022-06-30T21:34:09.399+03:00[Europe/Minsk]\",\n" +
-      "    \"executionTime\": \"2022-06-30T21:34:09.455+03:00[Europe/Minsk]\",\n" +
+      "    \"id\": 2,\n" +
+      "    \"resultValue\": null,\n" +
+      "    \"status\": \"RUNNING\",\n" +
+      "    \"scheduledTime\": \"2022-07-24T13:28:11.2030535+03:00[Europe/Minsk]\",\n" +
+      "    \"executionTime\": null,\n" +
       "    \"links\": [\n" +
       "        {\n" +
-      "            \"rel\": \"scriptbody\",\n" +
-      "            \"href\": \"http://localhost:8080/executions/1/scriptbody\"\n" +
+      "            \"rel\": \"self\",\n" +
+      "            \"href\": \"http://localhost:8080/executions/2\"\n" +
       "        },\n" +
       "        {\n" +
-      "            \"rel\": \"executionlog\",\n" +
-      "            \"href\": \"http://localhost:8080/executions/1/executionlog\"\n" +
+      "            \"rel\": \"jsExecutions\",\n" +
+      "            \"href\": \"http://localhost:8080/executions{?status,sortBy}\"\n" +
       "        },\n" +
       "        {\n" +
-      "            \"rel\": \"errorlog\",\n" +
-      "            \"href\": \"http://localhost:8080/executions/1/errorlog\"\n" +
+      "            \"rel\": \"SCRIPTBODY\",\n" +
+      "            \"href\": \"http://localhost:8080/executions/2/SCRIPTBODY\"\n" +
       "        },\n" +
       "        {\n" +
-      "            \"rel\": \"exceptioninfo\",\n" +
-      "            \"href\": \"http://localhost:8080/executions/1/exceptioninfo\"\n" +
+      "            \"rel\": \"EXECUTIONLOG\",\n" +
+      "            \"href\": \"http://localhost:8080/executions/2/EXECUTIONLOG\"\n" +
+      "        },\n" +
+      "        {\n" +
+      "            \"rel\": \"ERRORLOG\",\n" +
+      "            \"href\": \"http://localhost:8080/executions/2/ERRORLOG\"\n" +
+      "        },\n" +
+      "        {\n" +
+      "            \"rel\": \"EXCEPTIONINFO\",\n" +
+      "            \"href\": \"http://localhost:8080/executions/2/EXCEPTIONINFO\"\n" +
+      "        },\n" +
+      "        {\n" +
+      "            \"rel\": \"cancel\",\n" +
+      "            \"href\": \"http://localhost:8080/executions/2/cancel\"\n" +
       "        }\n" +
       "    ]\n" +
       "}";
+
+  public static final String CREATE_JS_EXECUTION_REQUEST_BODY_EXAMPLE = "{\"scriptBody\": \"console.log('I am js snippet!');\"}";
 
   /**
    * Json example of {@link com.anton.martynenko.jswrapper.jsexecution.JsExecution} objects array .
@@ -67,10 +81,11 @@ public final class JsonExamples {
   public static final String PLAIN_TEXT_EXAMPLE = "This is details report in plain text format. \n" +
       "It could be very varied.";
 
-  public static final String NO_RESPONSE_BODY_EXAMPLE = "No response body";
-  /**
-   * Default constructor .
-   */
-  private JsonExamples() {
-  }
+  public static final String JSEXECUTION_CAN_NOT_BE_CANCELLED_EXAMPLE = "{\n" +
+      "    \"title\": \"Method not allowed\",\n" +
+      "    \"status\": 405,\n" +
+      "    \"detail\": \"You can't cancel an execution that is in the SUCCESSFUL status\"\n" +
+      "}";
+
+
 }

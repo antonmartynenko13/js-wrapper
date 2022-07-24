@@ -25,5 +25,5 @@ public enum Property {
     /**
      * <code>jsexecution/{id}/exceptioninfo</code> endpoint.
      */
-    EXCEPTIONINFO
+    EXCEPTIONINFO;
 }

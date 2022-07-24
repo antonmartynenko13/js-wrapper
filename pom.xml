@@ -12,7 +12,7 @@
 
 	<groupId>com.anton.martynenko</groupId>
 	<artifactId>js-wrapper</artifactId>
-	<version>1.2.2</version>
+	<version>1.2.3</version>
 
 	<name>JsWrapper</name>
 	<packaging>jar</packaging>
@@ -92,17 +92,20 @@
 			<groupId>org.zalando</groupId>
 			<artifactId>problem-spring-web</artifactId>
 			<version>0.27.0</version>
-
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.graalvm.js/js -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.9</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.graalvm.js</groupId>
 			<artifactId>js</artifactId>
 			<version>22.0.0.2</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.graalvm.truffle/truffle-api -->
 		<dependency>
 			<groupId>org.graalvm.truffle</groupId>
 			<artifactId>truffle-api</artifactId>

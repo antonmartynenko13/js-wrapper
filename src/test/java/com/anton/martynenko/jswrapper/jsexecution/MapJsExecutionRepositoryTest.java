@@ -24,9 +24,6 @@ class MapJsExecutionRepositoryTest {
     private static final String VALID_CODE_EXAMPLE = "var i = null;";
 
     @Autowired
-    private JsExecutionFactory jsExecutionFactory;
-
-    @Autowired
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
@@ -44,7 +41,7 @@ class MapJsExecutionRepositoryTest {
 
     @Test
     void saveAndGetOne() {
-        JsExecution jsExecution = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution = new JsExecution(VALID_CODE_EXAMPLE);
 
         JsExecution jsExecutionEntity = jsExecutionMapRepository.save(jsExecution);
         assertThat(jsExecutionEntity.getId()).isNotNull();
@@ -74,9 +71,9 @@ class MapJsExecutionRepositoryTest {
 
     @Test
     void findAll() throws ExecutionException, InterruptedException {
-        JsExecution jsExecution1 = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE);
-        JsExecution jsExecution2 = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE);
-        JsExecution jsExecution3 = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution1 = new JsExecution(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution2 = new JsExecution(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution3 = new JsExecution(VALID_CODE_EXAMPLE);
 
         jsExecution1 = jsExecutionMapRepository.save(jsExecution1);
         jsExecution2 = jsExecutionMapRepository.save(jsExecution2);
@@ -97,10 +94,10 @@ class MapJsExecutionRepositoryTest {
 
     @Test
     void deleteAndDeleteAll() {
-        JsExecution jsExecution = jsExecutionFactory.createNew(VALID_CODE_EXAMPLE);
+        JsExecution jsExecution = new JsExecution(VALID_CODE_EXAMPLE);
         jsExecution = jsExecutionMapRepository.save(jsExecution);
-        jsExecutionMapRepository.save(jsExecutionFactory.createNew(VALID_CODE_EXAMPLE));
-        jsExecutionMapRepository.save(jsExecutionFactory.createNew(VALID_CODE_EXAMPLE));
+        jsExecutionMapRepository.save(new JsExecution(VALID_CODE_EXAMPLE));
+        jsExecutionMapRepository.save(new JsExecution(VALID_CODE_EXAMPLE));
 
         assertThat(jsExecutionMapRepository.findAll()).hasSize(3);
 

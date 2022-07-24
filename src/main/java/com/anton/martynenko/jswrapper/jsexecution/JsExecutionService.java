@@ -18,11 +18,11 @@ public interface JsExecutionService {
   /**
    * Runs new JS code execution.
    *
-   * @param scriptBody code fragment
+   * @param jsExecution new {@link JsExecution}
    * @return {@link  JsExecution} object
    * @since 1.2
    */
-  @NotNull JsExecution createJsExecution(@NotNull String scriptBody);
+  @NotNull JsExecution saveAndExecute(@NotNull JsExecution jsExecution);
 
   /**
    * Returns all executions.
@@ -58,7 +58,7 @@ public interface JsExecutionService {
   void deleteJsExecution(@NotNull JsExecution jsExecution);
 
   /**
-   * Stop running execution.
+   * Cancel or stop running execution.
    *
    * @param jsExecution {@link  JsExecution} id
    * @return stopped {@link  JsExecution} or null
@@ -66,6 +66,6 @@ public interface JsExecutionService {
    */
 
   @NotNull
-  JsExecution stopJsExecution(@NotNull JsExecution jsExecution);
+  JsExecution cancelJsExecution(@NotNull JsExecution jsExecution);
 }
 
