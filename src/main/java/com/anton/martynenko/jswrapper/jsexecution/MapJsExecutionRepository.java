@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.lang.reflect.*;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -116,12 +115,13 @@ public final class MapJsExecutionRepository implements JsExecutionRepository {
    * Add or update entity, set it's id and return it after that.
    * @param jsExecution new or existing {@link JsExecution}
    * @return {@link JsExecution}
+   * @throws EntityCanNotBeSavedProblem if reflection is not supported end entities cannot not be saved in normal way
    */
 
   @NotNull
   @Override
-  public JsExecution save(@NotNull final JsExecution jsExecution) {
-    if (jsExecution.getId() == null) {
+  public JsExecution save(@NotNull final JsExecution jsExecution) throws EntityCanNotBeSavedProblem {
+    if (jsExecution.getId() == 0) {
       try {
         //reflective id update
         FieldUtils.writeField(jsExecution, "id", ID_GENERATOR.incrementAndGet(), true);

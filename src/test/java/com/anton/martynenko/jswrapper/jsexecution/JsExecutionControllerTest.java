@@ -3,6 +3,7 @@ package com.anton.martynenko.jswrapper.jsexecution;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Property;
 import com.anton.martynenko.jswrapper.jsexecution.enums.SortBy;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
+import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionCanNotBeCancelledProblem;
 import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionNotFoundProblem;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -229,7 +230,9 @@ class JsExecutionControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.links").isNotEmpty())
             .andExpect(MockMvcResultMatchers.jsonPath("$.links").isArray());
 
-        FieldUtils.writeField(jsExecution, "status", Status.SUCCESSFUL, true);
+        when(jsExecutionService.cancelJsExecution(jsExecution))
+            .thenThrow(new JsExecutionCanNotBeCancelledProblem(
+                String.format("JsExecution with status %s cant be cancelled.", jsExecution.getStatus())));
 
         this.mockMvc.perform(delete("/executions/{id}/cancel", id))
                 .andDo(print())

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
@@ -12,8 +13,10 @@ import org.springframework.boot.test.json.JsonContent;
 import org.springframework.hateoas.EntityModel;
 
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 import static java.lang.String.format;
+import static org.mockito.Mockito.when;
 
 
 @JsonTest
@@ -29,10 +32,15 @@ class JsExecutionModelAssemblerTest {
   private JsExecutionModelAssembler jsExecutionModelAssembler = new JsExecutionModelAssembler();
 
   @Test
-  void toModel() throws IOException, NoSuchFieldException, IllegalAccessException {
+  void toModel() throws IOException, IllegalAccessException {
     int id = 1;
     JsExecution jsExecution = new JsExecution("console.log('Some code');");
+
+    Future<JsExecution> executionFuture = Mockito.mock(Future.class);
+    when(executionFuture.isDone()).thenReturn(false);
+
     FieldUtils.writeField(jsExecution, "id", id, true);
+    FieldUtils.writeField(jsExecution, "executionFuture", executionFuture, true);
 
     EntityModel<JsExecution> jsExecutionEntityModel = jsExecutionModelAssembler.toModel(jsExecution);
 

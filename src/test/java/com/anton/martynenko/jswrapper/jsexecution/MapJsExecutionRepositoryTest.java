@@ -2,6 +2,7 @@ package com.anton.martynenko.jswrapper.jsexecution;
 
 import com.anton.martynenko.jswrapper.jsexecution.enums.SortBy;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.Collection;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,7 +78,7 @@ class MapJsExecutionRepositoryTest {
     }
 
     @Test
-    void findAll() throws ExecutionException, InterruptedException {
+    void findAll() throws ExecutionException, InterruptedException, IllegalAccessException {
         JsExecution jsExecution1 = new JsExecution(VALID_CODE_EXAMPLE);
         JsExecution jsExecution2 = new JsExecution(VALID_CODE_EXAMPLE);
         JsExecution jsExecution3 = new JsExecution(VALID_CODE_EXAMPLE);
@@ -94,7 +92,11 @@ class MapJsExecutionRepositoryTest {
         jsExecutions = jsExecutionMapRepository.findAll(Status.CANCELLED, SortBy.ID);
         assertThat(jsExecutions).isEmpty();
 
-        jsExecution1.submitExecution(threadPoolTaskExecutor).get();
+        jsExecution1.submitExecution(threadPoolTaskExecutor);
+        Future<JsExecution> executionFuture
+            = (Future<JsExecution>) FieldUtils.readField(jsExecution1, "executionFuture", true);
+
+        executionFuture.get();
         jsExecutions = jsExecutionMapRepository.findAll(Status.SUCCESSFUL, SortBy.ID);
         assertThat(jsExecutions).hasSize(1);
         assertThat(jsExecutions.iterator().next()).isEqualTo(jsExecution1);

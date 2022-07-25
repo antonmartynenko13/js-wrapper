@@ -247,7 +247,7 @@ public class JsExecutionController {
    *
    * @param executionId {@link  JsExecution} id
    * @return  {@link ResponseEntity} containing json view of {@link JsExecution} with HATEOAS links
-   *
+   * @throws JsExecutionCanNotBeCancelledProblem when execution can't be cancelled
    * @since 1.0
    */
 
@@ -264,12 +264,8 @@ public class JsExecutionController {
               examples = @ExampleObject(value = JsonExamples.JSEXECUTION_CAN_NOT_BE_CANCELLED_EXAMPLE)))
   })
   @DeleteMapping(value = "/{executionId}/cancel", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_PROBLEM_JSON_VALUE})
-  public ResponseEntity<?> cancelJsExecution(@PathVariable final Integer executionId) {
+  public ResponseEntity<?> cancelJsExecution(@PathVariable final Integer executionId) throws JsExecutionCanNotBeCancelledProblem {
     JsExecution jsExecution = jsExecutionService.getJsExecution(executionId);
-
-    if (!jsExecution.isCancelable()) {
-      throw new JsExecutionCanNotBeCancelledProblem(String.format("JsExecution with status %s cant be cancelled.", jsExecution.getStatus()));
-    }
     jsExecution = jsExecutionService.cancelJsExecution(jsExecution);
     return ResponseEntity.ok(jsExecutionModelAssembler.toModel(jsExecution));
   }

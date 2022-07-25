@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
 
 @ThreadSafe
 @JsonDeserialize(using = JsExecutionDeserializer.class)
-@JsonIgnoreProperties(value = { "taskExecutor", "scriptBody", "out", "err", "context", "exception"}, ignoreUnknown = true)
+@JsonIgnoreProperties(value = { "scriptBody", "out", "err", "exception", "cancelable"}, ignoreUnknown = true)
 public class JsExecution implements Callable<JsExecution> {
 
   /**
@@ -44,20 +44,19 @@ public class JsExecution implements Callable<JsExecution> {
   /**
    * Object for checking state of thread and it's result.
    */
-
-  private Future<JsExecution> result;
+  private Future<JsExecution> executionFuture;
 
   /**
    * Simple numeric positive id.
    */
 
-  private Integer id;
+  private volatile int id;
 
   /**
    * String code fragment.
    */
 
-  private String scriptBody;
+  private final String scriptBody;
 
   /**
    * Some string value. If there are nothing to return from execution, field be initialize with "undefined".
@@ -72,6 +71,7 @@ public class JsExecution implements Callable<JsExecution> {
   /**
    * Creation time.
    */
+
   private final ZonedDateTime scheduledTime = ZonedDateTime.now();
 
   /**
@@ -104,12 +104,13 @@ public class JsExecution implements Callable<JsExecution> {
     this.scriptBody = scriptBody;
   }
 
+
   @Override
   public @NotNull JsExecution call() {
 
     LOGGER.info("Execution of script id {} started", this.id);
 
-    this.status = Status.RUNNING;
+    setStatus(Status.RUNNING);
     try (Context context = Context.newBuilder("js")
         .allowHostAccess(HostAccess.ALL)
         .allowPolyglotAccess(PolyglotAccess.ALL)
@@ -120,31 +121,56 @@ public class JsExecution implements Callable<JsExecution> {
 
       Value script = context.parse(Source.create("js", scriptBody));
       Value executionResult = script.execute();
-      executionTime = ZonedDateTime.now();
-      this.status = Status.SUCCESSFUL;
+      setExecutionTime(ZonedDateTime.now());
+      setStatus(Status.SUCCESSFUL);
       this.resultValue = executionResult.toString();
 
       LOGGER.info("Execution of script id {} is completed successfully", this.id);
 
     } catch (Exception e) {
       //if execution wasn't cancelled
-      if (!this.status.equals(Status.CANCELLED)){
+      if (!getStatus().equals(Status.CANCELLED)) {
         LOGGER.error("Exception during call method. Exception type is {} Context will be closed. Exception will be saved", e.getClass().getName());
-        this.status = Status.UNSUCCESSFUL;
-        this.exception = e;
+        setStatus(Status.UNSUCCESSFUL);
+        setException(e);
       }
-
     }
     return this;
   }
 
+  /**
+   * Getter for property 'executionFuture'.
+   *
+   * @return Value for property 'executionFuture'.
+   */
+  private synchronized Future<JsExecution> getExecutionFuture() {
+    return executionFuture;
+  }
+
+  /**
+   * Setter for property 'executionFuture'.
+   *
+   * @param executionFuture Value to set for property 'executionFuture'.
+   */
+  private synchronized void setExecutionFuture(final @NotNull Future<JsExecution> executionFuture) {
+    this.executionFuture = executionFuture;
+  }
+
+  /**
+   * Setter for property 'executionTime'.
+   *
+   * @param executionTime Value to set for property 'executionTime'.
+   */
+  private synchronized void setExecutionTime(final @NotNull ZonedDateTime executionTime) {
+    this.executionTime = executionTime;
+  }
 
   /**
    * Id getter.
    * @return current id
    */
 
-  public synchronized Integer getId() {
+  public int getId() {
     return id;
   }
 
@@ -166,7 +192,7 @@ public class JsExecution implements Callable<JsExecution> {
    */
 
   @JsonGetter
-  public String getResultValue() {
+  public synchronized String getResultValue() {
     return resultValue;
   }
 
@@ -174,8 +200,17 @@ public class JsExecution implements Callable<JsExecution> {
    * Status getter.
    * @return current execution {@link Status}
    */
-  public Status getStatus() {
+  public synchronized Status getStatus() {
     return status;
+  }
+
+  /**
+   * Setter for property 'status'.
+   *
+   * @param status Value to set for property 'status'.
+   */
+  public synchronized void setStatus(@NotNull final Status status) {
+    this.status = status;
   }
 
   /**
@@ -192,7 +227,7 @@ public class JsExecution implements Callable<JsExecution> {
    * @return stringified value of this.executionTime property with {@link DateTimeFormatter} ISO_ZONED_DATE_TIME pattern
    */
   @JsonGetter
-  String getExecutionTime() {
+  synchronized String getExecutionTime() {
     if (this.executionTime == null) {
       return null;
     }
@@ -225,62 +260,69 @@ public class JsExecution implements Callable<JsExecution> {
    * It converts not null exception info into plain text.
    * @return exception information
    */
-  String collectExceptionInfo() {
+  synchronized String collectExceptionInfo() {
     if (this.exception == null) {
       return "";
     }
     return ExceptionUtils.getStackTrace(exception);
   }
 
-  boolean isCancelable(){
-    return !this.status.equals(Status.SUCCESSFUL)
-        && !this.status.equals(Status.UNSUCCESSFUL)
-        && !this.status.equals(Status.CANCELLED);
+  /**
+   * Setter for property 'exception'.
+   *
+   * @param exception Value to set for property 'exception'.
+   */
+  public void setException(@NotNull final Exception exception) {
+    this.exception = exception;
   }
 
   /**
    * Execute script with task executor.
    * @param taskExecutor ThreadPoolTaskExecutor object
-   * @return {@link java.util.concurrent.Future} object for result retrieving
    * @since 1.1
    */
 
-  synchronized Future<JsExecution> submitExecution(@NotNull final ThreadPoolTaskExecutor taskExecutor) {
+  synchronized void submitExecution(@NotNull final ThreadPoolTaskExecutor taskExecutor) {
 
-    if (!this.status.equals(Status.CREATED)) {
+    if (getExecutionFuture() != null) {
 
-      LOGGER.debug("JsExecution with id {} and status {} status is trying to be submitted. Problem thrown.", this.id, this.status);
+      LOGGER.debug("JsExecution with id {} is already submitted. Problem thrown.", this.id);
 
-      throw new IllegalStateException(String.format("JsExecution with status %s can't be executed", this.status));
+      throw new IllegalStateException("JsExecution can't be executed twice.");
     }
+    setExecutionFuture(taskExecutor.submit(this));
 
-    this.result = taskExecutor.submit(this);
-
-    this.status = Status.SUBMITTED;
+    setStatus(Status.SUBMITTED);
 
     LOGGER.debug("JsExecution id {} successfully submitted", this.id);
-
-    return this.result;
   }
+
+  synchronized boolean isCancelable() {
+    Future<JsExecution> executionFuture = getExecutionFuture();
+    return executionFuture != null && !executionFuture.isDone();
+  }
+
 
   /**
    * Begin stopping script process and mark it as CANCELLED {@link  com.anton.martynenko.jswrapper.jsexecution.enums.Status}.
+   * @return false if execution has not cancellable status
    * @since 1.1
    */
 
-  synchronized void cancel() {
-    if (isCancelable()) {
-      if (this.result != null && !this.result.isCancelled()) {
-        this.result.cancel(true);
+  synchronized boolean cancel() {
 
-      }
-      this.status = Status.CANCELLED;
+    Future<JsExecution> executionFuture = getExecutionFuture();
 
-      LOGGER.debug("JsExecution id {} stopping initiated successfully", this.id);
-    } else {
-      LOGGER.debug("JsExecution id {} and status {} can't be canceled", this.id, this.status);
+    if (executionFuture != null && executionFuture.cancel(true)) {
+      setStatus(Status.CANCELLED);
 
+      LOGGER.debug("JsExecution id {} cancelled successfully", this.id);
+
+      return true;
     }
+
+    LOGGER.debug("JsExecution id {} and status {} can't be canceled", this.id, this.status);
+    return false;
   }
 
   @Override

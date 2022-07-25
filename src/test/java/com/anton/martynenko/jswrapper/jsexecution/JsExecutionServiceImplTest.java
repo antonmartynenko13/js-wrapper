@@ -2,6 +2,7 @@ package com.anton.martynenko.jswrapper.jsexecution;
 
 import com.anton.martynenko.jswrapper.jsexecution.enums.SortBy;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
+import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionCanNotBeCancelledProblem;
 import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionNotFoundProblem;
 import com.anton.martynenko.jswrapper.graalvm.GraalVmHelper;
 import org.junit.jupiter.api.Test;
@@ -113,9 +114,14 @@ class JsExecutionServiceImplTest {
     }
 
     @Test
-    void stopJsExecution() {
+    void cancelJsExecution() {
         JsExecution jsExecution = Mockito.mock(JsExecution.class);
 
+        when(jsExecution.cancel()).thenReturn(true);
         assertThat(jsExecutionServiceImpl.cancelJsExecution(jsExecution)).isEqualTo(jsExecution);
+
+        when(jsExecution.cancel()).thenReturn(false);
+
+        assertThrows(JsExecutionCanNotBeCancelledProblem.class, () -> {jsExecutionServiceImpl.cancelJsExecution(jsExecution);});
     }
 }

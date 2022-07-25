@@ -139,12 +139,7 @@ public final class JsExecutionServiceImpl implements JsExecutionService{
   @Override
   public void deleteJsExecution(@NotNull final JsExecution jsExecution) {
 
-    if (jsExecution.isCancelable()) {
-      logger.warn("Deleting of running execution id {}. It will be previously cancelled", jsExecution.getId());
-
-      jsExecution.cancel();
-    }
-
+    jsExecution.cancel();
     jsExecutionRepository.delete(jsExecution);
   }
 
@@ -153,15 +148,17 @@ public final class JsExecutionServiceImpl implements JsExecutionService{
    *
    * @param jsExecution {@link  JsExecution} id
    * @return cancelled {@link  JsExecution}
+   * @throws JsExecutionCanNotBeCancelledProblem if execution can't be cancelled
    *
    * @since 1.0
    */
 
   @NotNull
   @Override
-  public JsExecution cancelJsExecution(@NotNull final JsExecution jsExecution) {
-
-    jsExecution.cancel();
+  public JsExecution cancelJsExecution(@NotNull final JsExecution jsExecution) throws JsExecutionCanNotBeCancelledProblem {
+    if (!jsExecution.cancel()) {
+      throw new JsExecutionCanNotBeCancelledProblem(String.format("JsExecution with status %s cant be cancelled.", jsExecution.getStatus()));
+    }
 
     return jsExecution;
   }

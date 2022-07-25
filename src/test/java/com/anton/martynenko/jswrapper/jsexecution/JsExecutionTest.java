@@ -1,6 +1,7 @@
 package com.anton.martynenko.jswrapper.jsexecution;
 
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,13 +49,15 @@ class JsExecutionTest {
     }
 
     @Test
-    void shouldExecuteNormallyAndFillProperties() throws ExecutionException, InterruptedException {
+    void shouldExecuteNormallyAndFillProperties() throws ExecutionException, InterruptedException, IllegalAccessException {
 
         JsExecution jsExecution = new JsExecution(FUNCTION_CODE_EXAMPLE);
 
-        Future <JsExecution> result = jsExecution.submitExecution(threadPoolTaskExecutor);
+        jsExecution.submitExecution(threadPoolTaskExecutor);
 
-        jsExecution = result.get();
+        Future<JsExecution> executionFuture = (Future<JsExecution>) FieldUtils.readField(jsExecution, "executionFuture", true);
+
+        jsExecution = executionFuture.get();
 
         assertThat(jsExecution.getScriptBody()).isEqualTo(FUNCTION_CODE_EXAMPLE);
         assertThat(jsExecution.getResultValue()).isEqualTo("4");
@@ -64,9 +67,11 @@ class JsExecutionTest {
         assertThat(jsExecution.collectExceptionInfo()).isEmpty();
 
         jsExecution = new JsExecution(VALID_CODE_EXAMPLE2);
-        result = jsExecution.submitExecution(threadPoolTaskExecutor);
+        jsExecution.submitExecution(threadPoolTaskExecutor);
 
-        jsExecution = result.get();
+        executionFuture = (Future<JsExecution>) FieldUtils.readField(jsExecution, "executionFuture", true);
+
+        jsExecution = executionFuture.get();
 
         assertThat(jsExecution.getScriptBody()).isEqualTo(VALID_CODE_EXAMPLE2);
         assertThat(jsExecution.getResultValue()).isEqualTo("undefined");
@@ -77,10 +82,12 @@ class JsExecutionTest {
     }
 
     @Test
-    void shouldSuccessfullyStopAndFillProperties() throws InterruptedException {
+    void shouldSuccessfullyStopAndFillProperties() throws InterruptedException, IllegalAccessException {
         JsExecution jsExecution = new JsExecution(SLOW_JS_CODE);
 
-        Future <JsExecution> result = jsExecution.submitExecution(threadPoolTaskExecutor);
+        jsExecution.submitExecution(threadPoolTaskExecutor);
+
+        Future<JsExecution> executionFuture = (Future<JsExecution>) FieldUtils.readField(jsExecution, "executionFuture", true);
 
         TimeUnit.MILLISECONDS.sleep(500);
 
@@ -92,7 +99,7 @@ class JsExecutionTest {
 
         Assertions.assertEquals(jsExecution.getStatus(), Status.CANCELLED);
 
-        assertThat(result.isCancelled()).isTrue();
+        assertThat(executionFuture.isCancelled()).isTrue();
 
         assertThat(jsExecution.collectExceptionInfo()).isEmpty();
 
