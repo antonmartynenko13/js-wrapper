@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.StopWatch;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -54,8 +55,13 @@ class MapJsExecutionRepositoryTest {
     @Test
     void saveConcurrent() throws InterruptedException {
         int numberOfThreads = 1000;
-        ExecutorService service = Executors.newFixedThreadPool(12);
+        int poolSize = 12;
+        ExecutorService service = Executors.newFixedThreadPool(poolSize);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        StopWatch watch = new StopWatch();
+        watch.start();
+
         for (int i = 0; i < numberOfThreads; i++) {
             final int j = i;
             service.submit(() -> {
@@ -64,6 +70,10 @@ class MapJsExecutionRepositoryTest {
             });
         }
         latch.await();
+        watch.stop();
+        System.out.printf("Threads number: %d | Pool size: %d | Time Elapsed: %d",
+            numberOfThreads, poolSize, watch.getTotalTimeMillis());
+
         assertThat(jsExecutionMapRepository.findAll()).hasSize(numberOfThreads);
         AtomicInteger idGenerator = (AtomicInteger) ReflectionTestUtils.getField(jsExecutionMapRepository, "ID_GENERATOR");
         assertThat(idGenerator.get()).isEqualTo(numberOfThreads);

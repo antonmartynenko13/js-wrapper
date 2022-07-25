@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.StopWatch;
 
 
 import java.util.Collections;
@@ -108,13 +109,16 @@ class JsExecutionTest {
     @Test
     void shouldSuccesfullyRunAndFinishConcurrently() throws InterruptedException {
         int numberOfThreads = 1000;
+        int poolSize = 12;
         List<JsExecution> jsExecutions = Collections.nCopies(numberOfThreads, new JsExecution(VALID_CODE_EXAMPLE));
 
         System.out.println(jsExecutions.size());
 
-        ExecutorService service = Executors.newFixedThreadPool(12);
+        ExecutorService service = Executors.newFixedThreadPool(poolSize);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
+        StopWatch watch = new StopWatch();
+        watch.start();
         jsExecutions.forEach(jsExecution -> {
             service.submit(() -> {
                 jsExecution.call();
@@ -123,6 +127,10 @@ class JsExecutionTest {
         });
 
         latch.await();
+
+        watch.stop();
+        System.out.printf("Threads number: %d | Pool size: %d | Time Elapsed: %d",
+            numberOfThreads, poolSize, watch.getTotalTimeMillis());
 
         jsExecutions.forEach(jsExecution -> {
             assertThat(jsExecution.getStatus().equals(Status.SUCCESSFUL));
