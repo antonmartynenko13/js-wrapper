@@ -199,7 +199,8 @@ public class JsExecutionController {
   @Operation(summary = "Delete JsExecution",
       description = "Delete JsExecution by id")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = HttpURLConnection.HTTP_NO_CONTENT + "", description = "Execution deleted"),
+      @ApiResponse(responseCode = HttpURLConnection.HTTP_NO_CONTENT + "", description = "Execution deleted",
+      content = @Content(mediaType = MediaType.ALL_VALUE)),
       @ApiResponse(responseCode = HttpURLConnection.HTTP_NOT_FOUND + "", description = "Execution not found",
           content = @Content(mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE,
               examples = @ExampleObject(value = JsonExamples.JS_EXECUTION_NOT_FOUND_EXAMPLE)))
