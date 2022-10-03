@@ -4,10 +4,9 @@ import com.anton.martynenko.jswrapper.jsexecution.enums.SortBy;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
 import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionCanNotBeCancelledProblem;
 import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionNotFoundProblem;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
  * @since 1.0
  */
 @Slf4j
+@RequiredArgsConstructor
 @Service
 @ThreadSafe
 public class JsExecutionService {
@@ -46,15 +46,6 @@ public class JsExecutionService {
    * Component is stateless
    */
   private final JsExecutionFactory jsExecutionFactory;
-
-  @Autowired
-  private JsExecutionService(final ThreadPoolTaskExecutor taskExecutor,
-                             final JsExecutionFactory jsExecutionFactory,
-                             final List<JsExecution> storage) {
-    this.taskExecutor = taskExecutor;
-    this.jsExecutionFactory = jsExecutionFactory;
-    this.storage = storage;
-  }
 
   @NotNull
   JsExecutionDTO createAndRun(@NotNull final JsExecutionDTO jsExecutionDTO) {

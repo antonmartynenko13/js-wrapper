@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -47,6 +48,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
     )
 )
 @Tag(name = "JS executions API")
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/executions")
 public class JsExecutionController {
@@ -60,18 +62,6 @@ public class JsExecutionController {
    * {@link JsExecutionDTOModelAssembler} bean.
    */
   private final JsExecutionDTOModelAssembler jsExecutionDTOModelAssembler;
-
-  /**
-   * Autowiring constructor.
-   * @param jsExecutionService JsExecutionService service bean
-   * @param jsExecutionDTOModelAssembler JsExecutionModelAssembler service bean
-   */
-  @Autowired
-  public JsExecutionController(final JsExecutionService jsExecutionService,
-                               final JsExecutionDTOModelAssembler jsExecutionDTOModelAssembler) {
-    this.jsExecutionService = jsExecutionService;
-    this.jsExecutionDTOModelAssembler = jsExecutionDTOModelAssembler;
-  }
 
 
   /**
