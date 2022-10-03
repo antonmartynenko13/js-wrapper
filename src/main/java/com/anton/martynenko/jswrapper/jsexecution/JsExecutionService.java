@@ -4,6 +4,7 @@ import com.anton.martynenko.jswrapper.jsexecution.enums.SortBy;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
 import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionCanNotBeCancelledProblem;
 import com.anton.martynenko.jswrapper.jsexecution.problem.JsExecutionNotFoundProblem;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * @author Martynenko Anton
  * @since 1.0
  */
+@Slf4j
 @Service
 @ThreadSafe
 public class JsExecutionService {
@@ -32,12 +34,6 @@ public class JsExecutionService {
 
   @GuardedBy("storage")
   private final List<JsExecution> storage;
-
-  /**
-   * Local {@link org.slf4j.Logger} bean.
-   */
-
-  private final Logger logger;
 
   /**
    * Configured {@link ThreadPoolTaskExecutor} bean.
@@ -52,11 +48,9 @@ public class JsExecutionService {
   private final JsExecutionFactory jsExecutionFactory;
 
   @Autowired
-  private JsExecutionService(final Logger logger,
-                             final ThreadPoolTaskExecutor taskExecutor,
+  private JsExecutionService(final ThreadPoolTaskExecutor taskExecutor,
                              final JsExecutionFactory jsExecutionFactory,
                              final List<JsExecution> storage) {
-    this.logger = logger;
     this.taskExecutor = taskExecutor;
     this.jsExecutionFactory = jsExecutionFactory;
     this.storage = storage;
@@ -80,7 +74,7 @@ public class JsExecutionService {
   }
 
   @NotNull
-  Collection<JsExecutionDTO> findAll(@Nullable final Status status, @Nullable final SortBy sortBy) {
+  Collection<JsExecutionDTO> findAll( @NotNull final Optional<Status> status, @NotNull final Optional<SortBy> sortBy) {
     final List<JsExecutionDTO> jsExecutionDTOList = new ArrayList<>();
 
     //synchronize because storage is sharing resource
@@ -110,23 +104,24 @@ public class JsExecutionService {
 
     List<JsExecutionDTO> filtered = jsExecutionDTOList;
 
-    if (status != null) {
+
+    if (status.isPresent()) {
       filtered = jsExecutionDTOList.stream()
-          .filter(value -> value.getStatus().equals(status))
+          .filter(value -> value.getStatus().equals(status.get()))
           .collect(Collectors.toList());
     }
 
     //sort if criteria exists
 
-    if (sortBy != null) {
-      if (sortBy.equals(SortBy.ID)) {
+    if (sortBy.isPresent()) {
+      if (sortBy.get().equals(SortBy.ID)) {
         filtered = filtered.stream().sorted(Comparator.comparing(JsExecutionDTO::getId).reversed()).collect(Collectors.toList());
-      } else if (sortBy.equals(SortBy.SCHEDULED_TIME)) {
+      } else if (sortBy.get().equals(SortBy.SCHEDULED_TIME)) {
         filtered = filtered.stream().sorted(Comparator.comparing(JsExecutionDTO::getScheduledTime).reversed()).collect(Collectors.toList());
       }
     }
 
-    logger.debug("With status {} and sortBy {} {} jsExecutions found", status, sortBy, filtered.size());
+    log.debug("With status {} and sortBy {} {} jsExecutions found", status, sortBy, filtered.size());
 
     return filtered;
   }

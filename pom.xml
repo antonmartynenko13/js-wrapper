@@ -12,7 +12,7 @@
 
 	<groupId>com.anton.martynenko</groupId>
 	<artifactId>js-wrapper</artifactId>
-	<version>1.2.3</version>
+	<version>1.2.4</version>
 
 	<name>JsWrapper</name>
 	<packaging>jar</packaging>
@@ -112,6 +112,12 @@
 			<version>22.0.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<!--TEST-->
 
 		<dependency>
@@ -148,6 +154,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

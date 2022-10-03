@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -123,7 +124,7 @@ class JsExecutionControllerTest {
 
     @Test
     void listAll() throws Exception {
-        when(jsExecutionService.findAll(null, null)).thenReturn(Arrays.asList(jsExecutionDTO1, jsExecutionDTO2));
+        when(jsExecutionService.findAll(Optional.empty(), Optional.empty())).thenReturn(Arrays.asList(jsExecutionDTO1, jsExecutionDTO2));
 
         this.mockMvc.perform(get("/executions"))
             .andDo(print())
@@ -132,7 +133,8 @@ class JsExecutionControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.links").isNotEmpty())
             .andExpect(MockMvcResultMatchers.jsonPath("$.content").isNotEmpty());
 
-        when(jsExecutionService.findAll(Status.CREATED, null)).thenReturn(Arrays.asList(jsExecutionDTO1));
+        when(jsExecutionService.findAll(Optional.of(Status.CREATED), Optional.empty()))
+            .thenReturn(Arrays.asList(jsExecutionDTO1));
 
         this.mockMvc.perform(get("/executions?status=CREATED"))
             .andDo(print())
@@ -141,7 +143,8 @@ class JsExecutionControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.links").isNotEmpty())
             .andExpect(MockMvcResultMatchers.jsonPath("$.content").isNotEmpty());
 
-        when(jsExecutionService.findAll(null, SortBy.ID)).thenReturn(Arrays.asList(jsExecutionDTO2));
+        when(jsExecutionService.findAll(Optional.empty(), Optional.of(SortBy.ID)))
+            .thenReturn(Arrays.asList(jsExecutionDTO2));
 
         this.mockMvc.perform(get("/executions?sortBy=ID"))
             .andDo(print())

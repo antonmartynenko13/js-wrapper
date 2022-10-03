@@ -19,14 +19,10 @@ class JsWrapperServiceApplicationTest {
 	@Autowired
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
-	@Autowired
-	private Logger logger;
-
 	@Test
 	void contextLoads() {
 		assertThat(objectMapper).isNotNull();
 		assertThat(threadPoolTaskExecutor).isNotNull();
-		assertThat(logger).isNotNull();
 	}
 
 }

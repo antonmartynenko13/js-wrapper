@@ -1,10 +1,9 @@
 package com.anton.martynenko.jswrapper.jsexecution;
 
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
+import lombok.extern.slf4j.Slf4j;
 import org.graalvm.polyglot.*;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -25,13 +24,9 @@ import java.util.concurrent.Future;
  * @since 1.0
  */
 
+@Slf4j
 @ThreadSafe
 public final class JsExecution implements Runnable {
-
-  /**
-   * Local {@link org.slf4j.Logger} bean.
-   */
-  private static final Logger LOGGER = LoggerFactory.getLogger(JsExecution.class);
 
 
   /**
@@ -100,7 +95,7 @@ public final class JsExecution implements Runnable {
 
   @Override
   public void run() {
-    LOGGER.info("Execution of script id {} started", this.id);
+    log.info("Execution of script id {} started", this.id);
 
     setStatus(Status.RUNNING);
     try (Context context = Context.newBuilder("js")
@@ -116,20 +111,20 @@ public final class JsExecution implements Runnable {
       setExecutionTime(ZonedDateTime.now());
       setStatus(Status.SUCCESSFUL);
 
-      LOGGER.info("Execution of script id {} is completed successfully", this.id);
+      log.info("Execution of script id {} is completed successfully", this.id);
 
     } catch (PolyglotException pe) {
 
       //save exception only if execution wasn't cancelled
       if (!pe.isCancelled()) {
 
-        LOGGER.error("Code fragment is not valid. Context will be closed. Exception information saved. Context will be closed.");
+        log.error("Code fragment is not valid. Context will be closed. Exception information saved. Context will be closed.");
         setStatus(Status.REJECTED);
         setException(pe);
       }
     } catch (Exception e) {
 
-      LOGGER.error("Unknown exception during code executing. Exception type is {} Context will be closed. ", e.getClass().getName());
+      log.error("Unknown exception during code executing. Exception type is {} Context will be closed. ", e.getClass().getName());
 
       setStatus(Status.UNSUCCESSFUL);
     }
@@ -240,7 +235,7 @@ public final class JsExecution implements Runnable {
 
     if (this.executionFuture != null) {
 
-      LOGGER.debug("JsExecution with id {} is already submitted. Problem thrown.", this.id);
+      log.debug("JsExecution with id {} is already submitted. Problem thrown.", this.id);
 
       throw new IllegalStateException("JsExecution can't be executed twice.");
     }
@@ -249,7 +244,7 @@ public final class JsExecution implements Runnable {
 
     setStatus(Status.SUBMITTED);
 
-    LOGGER.debug("JsExecution id {} successfully submitted", this.id);
+    log.debug("JsExecution id {} successfully submitted", this.id);
   }
 
 
@@ -264,12 +259,12 @@ public final class JsExecution implements Runnable {
     if (this.executionFuture != null && this.executionFuture.cancel(true)) {
       setStatus(Status.CANCELLED);
 
-      LOGGER.debug("JsExecution id {} cancelled successfully", this.id);
+      log.debug("JsExecution id {} cancelled successfully", this.id);
 
       return true;
     }
 
-    LOGGER.debug("JsExecution id {} and status {} can't be canceled", this.id, this.status);
+    log.debug("JsExecution id {} and status {} can't be canceled", this.id, this.status);
     return false;
   }
 

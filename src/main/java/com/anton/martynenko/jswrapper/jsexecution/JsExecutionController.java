@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.HttpURLConnection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
@@ -148,8 +149,9 @@ public class JsExecutionController {
       }),
   })
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  public CollectionModel<EntityModel<JsExecutionDTO>>  listAll(@RequestParam(required = false) final Status status,
-                                                                     @RequestParam(required = false) final SortBy sortBy) {
+  public CollectionModel<EntityModel<JsExecutionDTO>>
+  listAll(@RequestParam(required = false) final Optional<Status> status,
+         @RequestParam(required = false) final Optional<SortBy> sortBy) {
 
     List<EntityModel<JsExecutionDTO>> entityModels = jsExecutionService.findAll(status, sortBy).stream() //
         .map(jsExecutionDTOModelAssembler::toModel) //

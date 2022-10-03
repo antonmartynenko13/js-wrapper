@@ -3,6 +3,7 @@ package com.anton.martynenko.jswrapper.jsexecution;
 import com.anton.martynenko.jswrapper.jsexecution.enums.Status;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.ToString;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.ZonedDateTime;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
  * @since 1.2
  */
 
+@ToString
 @JsonDeserialize(using = JsExecutionDTODeserializer.class)
 public final class JsExecutionDTO {
 
@@ -230,20 +232,5 @@ public final class JsExecutionDTO {
 
   String getExceptionInfo() {
     return exceptionInfo;
-  }
-
-  @Override
-  public String toString() {
-    return "JsExecutionDTO{" +
-        "id=" + id +
-        ", status=" + status +
-        ", scriptBody='" + scriptBody + '\'' +
-        ", scheduledTime=" + scheduledTime +
-        ", executionTime=" + executionTime +
-        ", executionLog='" + executionLog + '\'' +
-        ", errorLog='" + errorLog + '\'' +
-        ", cancellable=" + cancellable +
-        ", exceptionInfo='" + exceptionInfo + '\'' +
-        '}';
   }
 }

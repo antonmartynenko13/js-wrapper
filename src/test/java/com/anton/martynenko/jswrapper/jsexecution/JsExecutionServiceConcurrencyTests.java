@@ -8,10 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.util.StopWatch;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -105,7 +102,7 @@ class JsExecutionServiceConcurrencyTests {
       });
       service.submit(() -> {
         try {
-          jsExecutionService.findAll(null, null);
+          jsExecutionService.findAll(Optional.empty(), Optional.empty());
         } catch (Exception e) {
           System.err.println(e);
           crashesAmount.incrementAndGet();

@@ -14,10 +14,7 @@ import org.slf4j.Logger;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -89,7 +86,7 @@ class JsExecutionServiceTest {
     when(mockIterator.hasNext()).thenReturn(true, false);
     when(mockIterator.next()).thenReturn(jsExecution1);
 
-    assertThat(jsExecutionService.findAll(null, null)).isEqualTo(dtoList);
+    assertThat(jsExecutionService.findAll(Optional.empty(), Optional.empty())).isEqualTo(dtoList);
 
     // 2. Request with status filtering
     //not sure I understand why is this needed
@@ -100,12 +97,12 @@ class JsExecutionServiceTest {
 
     when(jsExecutionDTO1.getStatus()).thenReturn(status);
 
-    assertThat(jsExecutionService.findAll(status, null)).isEqualTo(dtoList);
+    assertThat(jsExecutionService.findAll(Optional.of(status), Optional.empty())).isEqualTo(dtoList);
 
     //not sure I understand why is this needed
     when(mockIterator.hasNext()).thenReturn(true, false);
     when(mockIterator.next()).thenReturn(jsExecution1);
-    assertThat(jsExecutionService.findAll(Status.CREATED, null)).isEmpty();
+    assertThat(jsExecutionService.findAll(Optional.of(Status.CREATED), Optional.empty())).isEmpty();
 
     // 3. Request with sorting
 
@@ -113,8 +110,7 @@ class JsExecutionServiceTest {
     when(mockIterator.hasNext()).thenReturn(true, true, false);
     when(mockIterator.next()).thenReturn(jsExecution2); //reversed
     when(mockIterator.next()).thenReturn(jsExecution1);
-
-    Collection<JsExecutionDTO> jsExecutionDTOList = jsExecutionService.findAll(null, SortBy.ID);
+    Collection<JsExecutionDTO> jsExecutionDTOList = jsExecutionService.findAll(Optional.empty(), Optional.of(SortBy.ID));
     assertThat(jsExecutionDTOList.iterator().next()).isEqualTo(jsExecutionDTO1); //must be id 1
   }
 
